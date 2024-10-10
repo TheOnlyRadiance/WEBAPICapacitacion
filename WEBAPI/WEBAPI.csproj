@@ -10,4 +10,10 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\WEBAPI.Data\WEBAPI.Data.csproj" />
+    <ProjectReference Include="..\WEBAPI.DTOs\WEBAPI.DTOs.csproj" />
+    <ProjectReference Include="..\WEBAPI.Models\WEBAPI.Models.csproj" />
+  </ItemGroup>
+
 </Project>
