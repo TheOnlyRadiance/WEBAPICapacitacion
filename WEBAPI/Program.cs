@@ -15,6 +15,7 @@ PostgressqlConfiguration postgressqlConfiguration = new PostgressqlConfiguration
 builder.Services.AddSingleton(postgressqlConfiguration);
 
 builder.Services.AddScoped<ITareaService, TareaService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
 
