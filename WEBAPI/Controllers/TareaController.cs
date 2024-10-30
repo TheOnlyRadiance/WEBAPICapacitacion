@@ -17,9 +17,15 @@ namespace WEBAPI.Controllers
 
         // GET: api/<TareaController>
         [HttpGet]
-        public IEnumerable<string> Get()
+        public async Task<IActionResult> Findall([FromQuery] int userId)
         {
-            return new string[] { "value1", "value2" };
+            IEnumerable<TareaModel> task = await _service.Findall(userId);
+            if (task.Count() == 0) 
+            {
+                return NotFound();
+            }
+
+            return Ok(task);
         }
 
         // GET api/<TareaController>/5
@@ -42,8 +48,10 @@ namespace WEBAPI.Controllers
 
         // PUT api/<TareaController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateTareaDto updateTareaDto, int iduser)
         {
+            TareaModel? Task = await _service.Update(updateTareaDto, iduser);
+            return Ok(Task); 
         }
 
         // DELETE api/<TareaController>/5

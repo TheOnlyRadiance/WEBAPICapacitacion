@@ -15,9 +15,32 @@ namespace WEBAPI.Data.Services
         public NpgsqlConnection CreateConnection() => new NpgsqlConnection(_postgresConfig.Connection);
 
         #region Create
-        public Task<UserModel?> Create(CreateUserDto CreateUserDto)
+        public async Task<UserModel?> Create(CreateUserDto CreateUserDto)
         {
-            throw new NotImplementedException();
+            using NpgsqlConnection database = CreateConnection();
+            string sqlQuery = "Select * From fun_user_create(" +
+                "p_nombres := @nombres," +
+                "p_usuario := @usuario," +
+                "p_contrasena := @contrasena);";
+            try
+            {
+                await database.OpenAsync();
+                IEnumerable<UserModel?> result = await database.QueryAsync<UserModel?>(
+                        sqlQuery,
+                        param: new
+                        {
+                            nombres = CreateUserDto.Names,
+                            usuario = CreateUserDto.UserName,
+                            contrasena = CreateUserDto.Password
+                        }
+                    );
+                await database.CloseAsync();
+                return result.FirstOrDefault();
+            }
+            catch (Exception ex) 
+            {
+                return null;
+            }
         }
         #endregion
 
@@ -35,11 +58,23 @@ namespace WEBAPI.Data.Services
             {
                 await database.OpenAsync();
 
-                IEnumerable<UserModel> users = await database.QueryAsync<UserModel, TareaModel, UserModel>(
+                IEnumerable<UserModel> result = await database.QueryAsync<UserModel, TareaModel, UserModel>(
                     sql: sqlQuery,
                     map: (user, task) => {
-                        List<TareaModel> currentTasks = userTasks[user.IdUsuario] ?? [];
-                        currentTasks.Add (task);
+                        List<TareaModel> currentTasks = [];
+
+                        userTasks.TryGetValue(user.IdUsuario, out currentTasks);
+
+                        currentTasks ??= [];
+
+                        if (currentTasks.Count == 0 && task != null)
+                        {
+                            currentTasks = [task];
+                        }
+                        else if (currentTasks.Count > 0 && task != null) {
+                            currentTasks.Add(task);
+                        }
+
                         userTasks[user.IdUsuario] = currentTasks;
                         return user;
                     },
@@ -47,6 +82,10 @@ namespace WEBAPI.Data.Services
                     );
                 await database.CloseAsync();
 
+                IEnumerable<UserModel> users = result.Distinct().Select(user => {
+                    user.Tareas = userTasks[user.IdUsuario];
+                    return user;
+                });
                 return users; 
             }
             catch (Exception e) {
@@ -57,23 +96,86 @@ namespace WEBAPI.Data.Services
         #endregion
 
         #region FIndOne
-        public Task<UserModel?> FindOne(int userId)
+        public async Task<UserModel?> FindOne(int userId)
         {
-            throw new NotImplementedException();
+            NpgsqlConnection database = CreateConnection();
+            string sqlQuery = "Select * from usuario where idusuario = @idusuario";
+
+            try
+            {
+                await database.OpenAsync();
+                UserModel? result = await database.QueryFirstOrDefaultAsync<UserModel>(
+                    sqlQuery,
+                    param: new
+                    {
+                        idusuario = userId
+                    }
+                    );
+                await database.CloseAsync();
+                return result;
+            }
+            catch (Exception ex) 
+            {
+                return null;
+            }
         }
         #endregion
 
         #region Remove
-        public Task<UserModel?> Remove(int userId)
+        public async Task<UserModel?> Remove(int userId)
         {
-            throw new NotImplementedException();
+            NpgsqlConnection database = CreateConnection();
+            string sqlQuery = "select * from fun_user_remove(" +
+                "p_idUsuario := @idusuario)";
+            try
+            {
+                await database.OpenAsync();
+                UserModel? result = await database.QueryFirstOrDefaultAsync<UserModel>(
+                    sqlQuery,
+                    param: new 
+                    {
+                        idusuario = userId
+                    });
+                await database.CloseAsync();
+                return result;
+            }
+            catch (Exception e) 
+            {
+                return null;
+            }
         }
         #endregion
 
         #region Update
-        public Task<UserModel?> Update(UpdateUserDto updateUserDto)
+        public async Task<UserModel?> Update(int iduser, UpdateUserDto updateUserDto)
         {
-            throw new NotImplementedException();
+            NpgsqlConnection database = CreateConnection();
+            string sqlQuery = "Select * from fun_user_update(" +
+                "p_idusuario := @idusuario," +
+                "p_nombres := @nombres," +
+                "p_usuario := @usuario," +
+                "P_contrasena := @contrasena);";
+
+            try
+            {
+                await database.OpenAsync();
+                var result = await database.QueryAsync<UserModel>(
+                    sqlQuery,
+                    param: new
+                    {
+                        idusuario = iduser,
+                        nombres = updateUserDto.Names,
+                        usuario = updateUserDto.UserName,
+                        contrasena = updateUserDto.Password
+                    }
+                    );
+                await database.CloseAsync();
+                return result.FirstOrDefault();
+            }
+            catch (Exception ex) 
+            {
+                return null;
+            }
         }
         #endregion
     }
