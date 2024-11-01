@@ -1,9 +1,9 @@
 ﻿using Dapper;
 using Npgsql;
-using System.Collections;
 using WEBAPI.Data.Interfaces;
 using WEBAPI.DTOs.User;
 using WEBAPI.Models;
+using BC = BCrypt.Net.BCrypt;
 
 namespace WEBAPI.Data.Services
 {
@@ -22,20 +22,22 @@ namespace WEBAPI.Data.Services
                 "p_nombres := @nombres," +
                 "p_usuario := @usuario," +
                 "p_contrasena := @contrasena);";
+
+            string hashedPassword = BC.EnhancedHashPassword(CreateUserDto.Password);
             try
             {
                 await database.OpenAsync();
-                IEnumerable<UserModel?> result = await database.QueryAsync<UserModel?>(
+                UserModel? result = await database.QueryFirstOrDefaultAsync<UserModel?>(
                         sqlQuery,
                         param: new
                         {
                             nombres = CreateUserDto.Names,
                             usuario = CreateUserDto.UserName,
-                            contrasena = CreateUserDto.Password
+                            contrasena = hashedPassword
                         }
                     );
                 await database.CloseAsync();
-                return result.FirstOrDefault();
+                return result;
             }
             catch (Exception ex) 
             {

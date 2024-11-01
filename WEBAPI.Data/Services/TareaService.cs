@@ -40,7 +40,7 @@ namespace WEBAPI.Data.Services
                         userId = CreateTareaDto.IdUsuario
                     },
                     map: (tarea, usuario) => {
-                        tarea.Usuario = usuario;
+                        tarea.Usuarioo = usuario;
                         return tarea;
                     },
                     splitOn: "UsuarioId"
@@ -54,6 +54,7 @@ namespace WEBAPI.Data.Services
             }
         }
         #endregion
+
         #region FINDALL
         public async Task<IEnumerable<TareaModel>> Findall(int userId) {
             using NpgsqlConnection database = CreateConnection();
@@ -70,7 +71,7 @@ namespace WEBAPI.Data.Services
                     },
                     map: (task, user) =>
                     {
-                        task.Usuario = user;
+                        task.Usuarioo = user;
                         return task;
                     },
                     splitOn: "usuarioId"
@@ -85,8 +86,9 @@ namespace WEBAPI.Data.Services
             };
         }
         #endregion
+
         #region UPDATE
-        public async Task<TareaModel?> Update(UpdateTareaDto updateTareaDto, int iduser) {
+        public async Task<TareaModel?> Update(int idtask, UpdateTareaDto updateTareaDto) {
             using NpgsqlConnection database = CreateConnection();
             string sqlQuery = "select * from fun_task_update(" +
                 "p_idTarea := @idTarea," + 
@@ -96,21 +98,17 @@ namespace WEBAPI.Data.Services
             {
                 await database.OpenAsync();
 
-                IEnumerable<TareaModel> result = await database.QueryAsync<TareaModel, UserModel, TareaModel>(
+                TareaModel? result = await database.QueryFirstOrDefaultAsync<TareaModel>(
                     sqlQuery,
                     param: new
                     {
+                        idTarea = idtask,
                         tarea = updateTareaDto.Tarea,
-                        descripcion = updateTareaDto.Descripcion,
-                    },
-                    map:(tarea, usuario) => {
-                        tarea.Usuario = usuario;
-                        return tarea;
-                    },
-                    splitOn: "Usuarioid"
+                        descripcion = updateTareaDto.Descripcion
+                    }
                     );
                 await database.CloseAsync();
-                return result.FirstOrDefault();
+                return result;
             }
             catch (Exception ex) 
             {
@@ -118,5 +116,55 @@ namespace WEBAPI.Data.Services
             }
         }
         #endregion
+
+        #region Remove
+        public async Task<TareaModel?> Remove(int taskID) 
+        {
+            NpgsqlConnection database = CreateConnection();
+            string sqlQuery = "Select * from fun_task_remove(p_idTarea := @idtarea)";
+            try
+            {
+                TareaModel? result = await database.QueryFirstOrDefaultAsync<TareaModel>(
+                    sqlQuery,
+                    param: new 
+                    {
+                        idtarea = taskID
+                    }
+                    );
+                await database.CloseAsync();
+                return result;
+            }
+            catch (Exception ex)
+                {
+                return null;
+            }
+        }
+        #endregion
+
+        #region Togglestatus
+        public async Task<TareaModel?> Togglestatus(int taskID) 
+        {
+            NpgsqlConnection database = CreateConnection();
+            string sqlQuery = "Select * from fun_task_togglestatus(p_idTarea := @idtarea)";
+            try
+            {
+                TareaModel? result = await database.QueryFirstOrDefaultAsync<TareaModel>(
+                    sqlQuery,
+                    param: new
+                    {
+                        idtarea = taskID
+                    }
+                    );
+                await database.CloseAsync();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+        #endregion
+
+
     }
 }

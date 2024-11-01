@@ -48,16 +48,30 @@ namespace WEBAPI.Controllers
 
         // PUT api/<TareaController>/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateTareaDto updateTareaDto, int iduser)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateTareaDto updateTareaDto)
         {
-            TareaModel? Task = await _service.Update(updateTareaDto, iduser);
+            TareaModel? Task = await _service.Update(id,updateTareaDto);
             return Ok(Task); 
         }
 
         // DELETE api/<TareaController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
+            TareaModel? task = await _service.Remove(id);
+            if (task == null) return NotFound();
+            return Ok(task);
+        }
+        [HttpPut("Togglestatus/{taskID}")]
+        public async Task<IActionResult> Togglestatus(int taskID) 
+        {
+            TareaModel? Task = await _service.Togglestatus(taskID);
+            if (Task == null)
+            {
+                return NotFound();
+            }
+              return Ok(Task);
+             
         }
     }
 }
