@@ -58,7 +58,7 @@ namespace WEBAPI.Data.Services
         #region FINDALL
         public async Task<IEnumerable<TareaModel>> Findall(int userId) {
             using NpgsqlConnection database = CreateConnection();
-            string sqlquery = "SELECT * FROM view_tarea where idUsuario = @userId";
+            string sqlquery = "SELECT * FROM view_tarea";
             try
             {
                 await database.OpenAsync();

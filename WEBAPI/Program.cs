@@ -17,6 +17,15 @@ builder.Services.AddSingleton(postgressqlConfiguration);
 builder.Services.AddScoped<ITareaService, TareaService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: "cors",
+      configurePolicy: policy =>
+      {
+          policy.WithOrigins("*").AllowAnyHeader().AllowAnyMethod();
+      });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -25,6 +34,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("cors");
 
 app.UseHttpsRedirection();
 

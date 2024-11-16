@@ -48,7 +48,7 @@ namespace WEBAPI.Controllers
         }
 
         // PUT api/<UserController>/5
-        [HttpPut("{id}")]
+        [HttpPut("{iduser}")]
         public async Task<IActionResult> Update(int iduser, [FromBody] UpdateUserDto updateUserDto )
         {
             UserModel? task = await _service.Update(iduser, updateUserDto);
@@ -56,7 +56,7 @@ namespace WEBAPI.Controllers
         }
 
         // DELETE api/<UserController>/5
-        [HttpDelete("{id}")]
+        [HttpDelete("{userId}")]
         public async Task<IActionResult> Remove(int userId)
         {
             UserModel? user = await _service.Remove(userId);
